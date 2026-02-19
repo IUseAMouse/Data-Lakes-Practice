@@ -1,139 +1,30 @@
-# TP 1 – Data Lakes & Data Pipelines (Pfam)
+# TP3 - Pipeline de traitement des données
+Ce projet implémente une pipeline de traitement de données en trois étapes utilisant DVC pour l'orchestration.
 
-## 1. Objectif du TP
+## Architecture
+La pipeline est composée de trois étapes principales :
 
-Ce TP a pour but de vous faire manipuler un pipeline de données réaliste, depuis
-l’ingestion de données brutes jusqu’à leur préparation pour l’entraînement d’un
-modèle de machine learning.
+* Raw : Extraction des données sources vers une zone brute
+* Staging : Transformation et chargement dans MySQL
+* Curated : Traitement final et stockage dans MongoDB
 
-Vous travaillerez sur le dataset **Pfam**, un jeu de données massif et fortement
-déséquilibré, représentatif des problématiques rencontrées en production.
 
----
+## Prérequis
+Python 3.10+
+DVC
+MySQL
+MongoDB
+LocalStack (pour simuler S3)
 
-## 2. Environnement de travail
 
-Le projet utilise un **pyproject.toml** et le gestionnaire de paquets **UV**.
+## Configurez vos services :
+MySQL sur localhost:3306
+MongoDB sur localhost:27017
+LocalStack sur localhost:4566
 
-### Installation de UV
+## Pipeline DVC
+La pipeline est définie dans dvc.yaml et comprend trois étapes :
 
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-Redémarrez votre terminal puis vérifiez :
-
-```bash
-uv --version
-```
-
-### Création de l’environnement
-
-À la racine du projet :
-
-```bash
-uv sync
-```
-
-Pour activer l’environnement :
-
-```bash
-source .venv/bin/activate
-```
-
----
-
-## 3. Téléchargement des données
-
-Téléchargez le dataset Pfam depuis Kaggle :
-
-https://www.kaggle.com/datasets/googleai/pfam-seed-random-split
-
-Vous pouvez utiliser l’API Kaggle si vous le souhaitez.
-
-### Installation de la CLI Kaggle
-
-```bash
-pip install kaggle
-```
-
-### Authentification
-
-Placez votre fichier `kaggle.json` dans :
-
-```bash
-~/.kaggle/kaggle.json
-```
-
-### Téléchargement
-
-```bash
-kaggle datasets download googleai/pfam-seed-random-split
-```
-
-Décompressez ensuite l’archive dans :
-
-```bash
-data/bronze/
-```
-
----
-
-## 4. Ingestion des données (Bronze)
-
-Combinez les fichiers CSV avec le script `unpack_data.py` :
-
-```bash
-python src/unpack_data.py \
-  --input_dir data/bronze/ \
-  --output_file data/bronze/combined_data.csv
-```
-
-Le fichier résultant doit contenir plus d’un million de lignes.
-
----
-
-## 5. Analyse exploratoire
-
-Un notebook d’analyse est disponible dans :
-
-```text
-notebooks/data_analysis.ipynb
-```
-
-Utilisez-le pour comprendre :
-- la distribution des classes
-- l’ampleur du déséquilibre
-- les contraintes sur le split train/val/test
-
----
-
-## 6. Prétraitement des données (Silver)
-
-Implémentez votre stratégie de prétraitement dans `src/preprocess.py`, puis exécutez :
-
-```bash
-python src/preprocess.py \
-  --data_file data/bronze/combined_data.csv \
-  --output_dir data/silver/
-```
-
-Le script doit produire :
-
-- `train.csv`
-- `val.csv`
-- `test.csv`
-
-⚠️ **Attention** : un split stratifié naïf ne fonctionne pas sur ce dataset.
-Vous devez concevoir une stratégie adaptée aux classes rares.
-
----
-
-## 7. Remarques pédagogiques
-
-Ce TP met en évidence un problème fondamental du machine learning appliqué :
-les hypothèses des outils standards (données équilibrées, classes suffisantes)
-ne tiennent pas toujours en conditions réelles.
-
-Savoir adapter un pipeline à ces contraintes est une compétence clé en
-**Data Engineering** et **ML Engineering**.
+unpack_to_raw : Extrait les données vers data/raw
+preprocess_to_staging : Charge les données dans MySQL
+process_to_curated : Traite et stocke dans MongoDB
